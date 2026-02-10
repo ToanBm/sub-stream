@@ -2,10 +2,19 @@
 A Web3 Video Streaming Platform powered by **Tempo Network**, featuring gasless subscriptions and Passkey authentication.
 
 ## 🚀 Features
-- **Passkey Auth**: Passwordless login and registration via WebAuthn.
-- **Gasless Subscriptions**: Automated recurring payments using AlphaUSD.
-- **Premium Content**: Access-controlled video streaming based on on-chain status.
-- **Dynamic UI**: Modern, responsive design with high-end aesthetics.
+
+### Core Innovation: Tempo Access Keys
+SubStream leverages **Tempo Access Keys** - a groundbreaking blockchain primitive that enables:
+- **Delegated Payment Authority**: Users grant the server permission to charge their wallet automatically
+- **Gasless Subscriptions**: Server pays gas fees; users only pay subscription costs
+- **Revocable Permissions**: Users can cancel anytime by revoking the Access Key on-chain
+- **No Manual Approvals**: Seamless recurring payments without transaction popups
+
+### Additional Features
+- **Passkey Authentication**: Passwordless login via WebAuthn (P256) - your device is your wallet
+- **Premium Content Gating**: Video streaming access controlled by on-chain subscription status
+- **Automated Billing**: Backend cron job charges users at scheduled intervals (hourly/daily/monthly)
+- **Modern UI**: Responsive design with premium aesthetics and smooth animations
 
 ## 🛠 Tech Stack
 - **Frontend**: React, Vite, Tailwind CSS, Viem (Tempo SDK).
