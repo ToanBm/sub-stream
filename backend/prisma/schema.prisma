@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Subscription {
+  id              String @id @default(uuid())
+  userAddress     String
+  planId          String
+  status          String // 'active', 'cancelled', 'payment_failed'
+
+  // Access Key Details
+  subscriptionKeyId   String @unique // The public address of the ephemeral key
+  encryptedPrivateKey String         // In production this should be encrypted
+
+  // Payment Details
+  nextPaymentDue  BigInt // Timestamp in ms
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Authorization Data (JSON stored as String for reconstructing Auth)
+  authPayload     String // Stores authorized limits, expiry, etc.
+  authSignature   String // The root signature
+}
+
+model PaymentHistory {
+  id              String @id @default(uuid())
+  subscriptionKey String
+  amount          String
+  txHash          String
+  status          String // 'success', 'failed'
+  timestamp       DateTime @default(now())
+}
+
+model Credential {
+  id        String   @id // WebAuthn credential ID
+  publicKey String   // Hex-encoded P256 public key
+  address   String   // Derived Tempo account address
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg: #FFFFFF;
+  --color-bg-alt: #F5F5F5;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F0F0F0;
+  --color-navy: #002D72;
+  --color-navy-dark: #001A44;
+  --color-gold: #C6993E;
+  --color-gold-light: #D4AF5720;
+  --color-red: #E31937;
+  --color-accent: #002D72;
+  --color-accent-hover: #003D99;
+  --color-text: #1A1A2E;
+  --color-text-muted: #6B7280;
+  --color-border: #E5E7EB;
+  --color-border-dark: #D1D5DB;
+  --color-card: #FFFFFF;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--color-bg);
+  color: var(--color-text);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+}
+
+#root {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+::selection {
+  background: var(--color-navy);
+  color: white;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-alt);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-dark);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s ease-out both;
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+.animate-slide-in {
+  animation: slide-in-right 0.5s ease-out both;
+}
+
+/* NBC-style accent bar */
+.accent-bar {
+  display: block;
+  width: 48px;
+  height: 4px;
+  background: var(--color-red);
+  border-radius: 2px;
+}
+
+.accent-bar-gold {
+  display: block;
+  width: 48px;
+  height: 4px;
+  background: var(--color-gold);
+  border-radius: 2px;
+}
+
+/* Bold section divider */
+.section-divider {
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-red), var(--color-gold), var(--color-navy));
+}
+
+/* Card with clean shadow */
+.card-shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.card-shadow:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Text gradient - gold */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-gold), #D4AF57);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Heading font utility - now uses Outfit */
+.font-display {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* NBC-style top stripe */
+.nbc-stripe {
+  height: 4px;
+  background: linear-gradient(90deg,
+    #E31937 0%, #E31937 20%,
+    #FF6F00 20%, #FF6F00 40%,
+    #FFC107 40%, #FFC107 60%,
+    #4CAF50 60%, #4CAF50 80%,
+    #002D72 80%, #002D72 100%
+  );
+}
+
+/* Noise overlay — disabled for light theme */
+.noise-overlay::before {
+  display: none;
+}
