@@ -27,7 +27,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/movies" element={<HomePage filter="movie" />} />
           <Route path="/series" element={<HomePage filter="series" />} />
-          <Route path="/watch/:id" element={<VideoPlayerPage isRegistered={isRegistered} onRegister={register} onLogin={login} />} />
+          <Route path="/watch/:id" element={<VideoPlayerPage address={address} isRegistered={isRegistered} onRegister={register} onLogin={login} />} />
           <Route
             path="/subscribe"
             element={

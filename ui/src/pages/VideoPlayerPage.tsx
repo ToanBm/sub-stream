@@ -1,18 +1,40 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Play, Clock, Star, Calendar, Shield, ExternalLink, Lock } from 'lucide-react';
 import { videos, getRelatedVideos } from '../data/videos';
 import { VideoCard } from '../components/VideoCard';
 
 type VideoPlayerPageProps = {
+  address: string | null;
   isRegistered: boolean;
   onRegister: () => void;
   onLogin: () => void;
 };
 
-export function VideoPlayerPage({ isRegistered, onRegister, onLogin }: VideoPlayerPageProps) {
+export function VideoPlayerPage({ address, isRegistered, onRegister, onLogin }: VideoPlayerPageProps) {
   const { id } = useParams<{ id: string }>();
   const video = videos.find((v) => v.id === id);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+
+  // Check subscription status
+  useEffect(() => {
+    if (!address || !isRegistered) {
+      setHasActiveSubscription(false);
+      return;
+    }
+
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/my-subscription/${address}`)
+      .then(r => r.json())
+      .then(data => {
+        const sub = data?.subscription;
+        const isActive = sub && sub.status === 'active';
+        setHasActiveSubscription(isActive);
+      })
+      .catch(err => {
+        console.error('Failed to check subscription:', err);
+        setHasActiveSubscription(false);
+      });
+  }, [address, isRegistered]);
 
   if (!video) {
     return (
@@ -51,7 +73,7 @@ export function VideoPlayerPage({ isRegistered, onRegister, onLogin }: VideoPlay
           <div className="lg:col-span-2 space-y-6">
             {/* YouTube Embed or Lock Overlay */}
             <div className="relative aspect-video rounded-lg overflow-hidden bg-black shadow-xl">
-              {isRegistered ? (
+              {isRegistered && hasActiveSubscription ? (
                 <iframe
                   src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=0&rel=0&modestbranding=1&color=white`}
                   title={video.title}
@@ -76,25 +98,38 @@ export function VideoPlayerPage({ isRegistered, onRegister, onLogin }: VideoPlay
                       <h3
                         className="text-xl font-bold text-white uppercase tracking-wide"
                       >
-                        Sign in to watch
+                        {!isRegistered ? 'Sign in to watch' : 'Subscribe to watch'}
                       </h3>
                       <p className="text-sm text-white/70 mt-2">
-                        Register or sign in with your passkey to unlock full streaming access.
+                        {!isRegistered
+                          ? 'Register or sign in with your passkey to unlock full streaming access.'
+                          : 'Subscribe to one of our plans to access premium content.'}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <button
-                        onClick={onLogin}
-                        className="px-6 py-2.5 text-sm font-bold uppercase tracking-wide text-white border border-white/40 hover:bg-white/10 rounded transition-all duration-200"
-                      >
-                        Sign In
-                      </button>
-                      <button
-                        onClick={onRegister}
-                        className="px-6 py-2.5 text-sm font-bold uppercase tracking-wide text-white bg-[var(--color-red)] hover:bg-[#C71530] rounded shadow-lg transition-all duration-200 active:scale-95"
-                      >
-                        Get Started
-                      </button>
+                      {!isRegistered ? (
+                        <>
+                          <button
+                            onClick={onLogin}
+                            className="px-6 py-2.5 text-sm font-bold uppercase tracking-wide text-white border border-white/40 hover:bg-white/10 rounded transition-all duration-200"
+                          >
+                            Sign In
+                          </button>
+                          <button
+                            onClick={onRegister}
+                            className="px-6 py-2.5 text-sm font-bold uppercase tracking-wide text-white bg-[var(--color-red)] hover:bg-[#C71530] rounded shadow-lg transition-all duration-200 active:scale-95"
+                          >
+                            Get Started
+                          </button>
+                        </>
+                      ) : (
+                        <Link
+                          to="/subscribe"
+                          className="px-6 py-2.5 text-sm font-bold uppercase tracking-wide text-white bg-[var(--color-red)] hover:bg-[#C71530] rounded shadow-lg transition-all duration-200 active:scale-95"
+                        >
+                          View Plans
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </>
@@ -115,7 +150,12 @@ export function VideoPlayerPage({ isRegistered, onRegister, onLogin }: VideoPlay
                   </p>
                 </div>
 
-                {isRegistered ? (
+                {hasActiveSubscription ? (
+                  <div className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white text-sm font-bold uppercase tracking-wide rounded shrink-0">
+                    <Shield className="w-4 h-4" />
+                    Active Subscriber
+                  </div>
+                ) : isRegistered ? (
                   <Link
                     to="/subscribe"
                     className="flex items-center gap-2 px-5 py-2.5 bg-[var(--color-navy)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-bold uppercase tracking-wide rounded transition-all duration-200 shrink-0"
