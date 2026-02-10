@@ -8,6 +8,7 @@ import {
     Play,
     Clock,
     Zap,
+    RefreshCw,
     Calendar,
     ArrowLeft,
     Shield
@@ -42,6 +43,26 @@ export function AccountPage({ address, isRegistered }: AccountPageProps) {
     const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
     const [showDepositModal, setShowDepositModal] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const refreshBalance = async () => {
+        if (!address || refreshing) return;
+        setRefreshing(true);
+        try {
+            const [balData, subData] = await Promise.all([
+                fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/balance/${address}`).then(r => r.json()),
+                fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/my-subscription/${address}`).then(r => r.json())
+            ]);
+            if (balData) setBalance(balData);
+            if (subData) setMySub(subData.subscription);
+            toast.success('Balance refreshed!');
+        } catch (err) {
+            console.error('Refresh error:', err);
+            toast.error('Failed to refresh balance');
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     useEffect(() => {
         if (!address) return;
@@ -126,9 +147,19 @@ export function AccountPage({ address, isRegistered }: AccountPageProps) {
                         <div className="p-0.5 bg-[var(--color-navy)]" />
                         <div className="p-6 flex-1 flex flex-col">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-bold uppercase tracking-wide text-[var(--color-text)]">
-                                    Wallet & Balance
-                                </h2>
+                                <div className="flex items-center gap-3">
+                                    <h2 className="text-lg font-bold uppercase tracking-wide text-[var(--color-text)]">
+                                        Wallet & Balance
+                                    </h2>
+                                    <button
+                                        onClick={refreshBalance}
+                                        disabled={refreshing}
+                                        className="p-1.5 rounded-full hover:bg-[var(--color-bg-alt)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Refresh balance"
+                                    >
+                                        <RefreshCw className={`w-4 h-4 text-[var(--color-navy)] ${refreshing ? 'animate-spin' : ''}`} />
+                                    </button>
+                                </div>
                                 <Zap className="w-5 h-5 text-[var(--color-navy)] opacity-20" />
                             </div>
 
