@@ -49,8 +49,8 @@ export function AccountPage({ address, isRegistered }: AccountPageProps) {
         setLoading(true);
         const timer = setTimeout(() => {
             Promise.all([
-                fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/balance/${address}`).then(r => r.json()),
-                fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/my-subscription/${address}`).then(r => r.json())
+                fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/balance/${address}`).then(r => r.json()),
+                fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/my-subscription/${address}`).then(r => r.json())
             ])
                 .then(([balData, subData]) => {
                     if (balData) setBalance(balData);

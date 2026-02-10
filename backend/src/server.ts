@@ -26,7 +26,7 @@ app.use(cors());
 app.use(bodyParser.json());
 const prisma = new PrismaClient();
 
-const PORT = Number(process.env.PORT) || 3001;
+const PORT = Number(process.env.PORT) || 3005;
 const TEMPO_TESTNET_RPC = 'https://rpc.moderato.tempo.xyz/';
 const ALPHAUSD_ADDRESS = '0x20c0000000000000000000000000000000000001';
 

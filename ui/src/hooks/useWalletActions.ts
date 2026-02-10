@@ -5,7 +5,7 @@ import { usePasskey } from './usePasskey';
 
 const USDC_ADDRESS = '0x20c0000000000000000000000000000000000001';
 const RPC_URL = 'https://rpc.moderato.tempo.xyz/';
-const FEE_PAYER_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/fee-payer` : 'http://localhost:3001/fee-payer';
+const FEE_PAYER_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/fee-payer` : 'http://localhost:3005/fee-payer';
 
 const tempoModerato = defineChain({
     ...tempoTestnet,

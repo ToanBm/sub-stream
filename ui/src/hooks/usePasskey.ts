@@ -4,7 +4,7 @@ import { Account, WebAuthnP256 } from 'viem/tempo';
 import { useToast } from './useToast';
 
 const STORAGE_KEY = 'substream_passkey';
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3005';
 
 type StoredCredential = {
     id: string;

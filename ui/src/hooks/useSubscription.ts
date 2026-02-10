@@ -63,7 +63,7 @@ export function useSubscription(
 
             // 5. Send to Backend
             const endpoints = [
-                `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/subscribe`,
+                `${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/subscribe`,
                 '/api/subscribe',
             ];
 

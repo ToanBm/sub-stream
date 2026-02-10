@@ -83,8 +83,8 @@ export function SubscribePage({
     }
     setLoading(true);
     Promise.all([
-      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/my-subscription/${address}`).then((r) => r.json()),
-      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/balance/${address}`).then((r) => r.json()),
+      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/my-subscription/${address}`).then((r) => r.json()),
+      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/balance/${address}`).then((r) => r.json()),
     ])
       .then(([subData, balData]) => {
         if (subData.subscription) {
@@ -102,7 +102,7 @@ export function SubscribePage({
   const confirmCancel = async () => {
     setShowCancelModal(false);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/cancel-subscription`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/cancel-subscription`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subscriptionId: mySub.id }),
@@ -126,7 +126,7 @@ export function SubscribePage({
   const retryPayment = async () => {
     setRetryLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/retry-payment`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/retry-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subscriptionId: mySub.id }),
