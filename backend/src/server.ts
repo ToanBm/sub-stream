@@ -406,37 +406,75 @@ app.get('/balance/:address', async (req, res) => {
 
 app.post('/retry-payment', async (req, res) => {
     try {
-        const { subscriptionId } = req.body;
+        const { subscriptionId, userAddress } = req.body;
+        
+        if (!subscriptionId) {
+            return res.status(400).json({ error: 'Subscription ID is required' });
+        }
+        
         console.log(`[Server] Manual retry for ${subscriptionId}...`);
+        
+        // Verify subscription exists and belongs to user
+        const sub = await prisma.subscription.findUnique({ where: { id: subscriptionId } });
+        if (!sub) {
+            return res.status(404).json({ error: 'Subscription not found' });
+        }
+        
+        if (userAddress && sub.userAddress.toLowerCase() !== userAddress.toLowerCase()) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+        
         await processPayment(subscriptionId, false);
 
         const updated = await prisma.subscription.findUnique({ where: { id: subscriptionId } });
         if (updated?.status === 'active') {
-            return res.json({ success: true });
+            return res.json({ success: true, message: 'Payment successful! Subscription reactivated.' });
         } else {
             // Fetch last history to get error
             const lastHistory = await prisma.paymentHistory.findFirst({
                 where: { subscriptionKey: updated?.subscriptionKeyId },
                 orderBy: { timestamp: 'desc' }
             });
-            return res.status(400).json({ error: `Payment still failing. Check logs.` });
+            return res.status(400).json({ 
+                error: 'Payment failed. Please check your balance and try again.',
+                details: lastHistory?.status 
+            });
         }
     } catch (e: any) {
-        return res.status(500).json({ error: e.message });
+        console.error('[Server] Retry payment error:', e);
+        return res.status(500).json({ error: e.message || 'Internal server error' });
     }
 });
 
+
 app.post('/cancel-subscription', async (req, res) => {
     try {
-        const { subscriptionId } = req.body;
+        const { subscriptionId, userAddress } = req.body;
+        
+        if (!subscriptionId) {
+            return res.status(400).json({ error: 'Subscription ID is required' });
+        }
+        
+        // Verify subscription exists and belongs to user
+        const sub = await prisma.subscription.findUnique({ where: { id: subscriptionId } });
+        if (!sub) {
+            return res.status(404).json({ error: 'Subscription not found' });
+        }
+        
+        if (userAddress && sub.userAddress.toLowerCase() !== userAddress.toLowerCase()) {
+            return res.status(403).json({ error: 'Unauthorized: This subscription does not belong to you' });
+        }
+        
         await prisma.subscription.update({
             where: { id: subscriptionId },
             data: { status: 'cancelled' }
         });
-        console.log(`[Server] Subscription ${subscriptionId} cancelled.`);
-        return res.json({ success: true });
+        
+        console.log(`[Server] Subscription ${subscriptionId} cancelled by user ${userAddress || 'unknown'}.`);
+        return res.json({ success: true, message: 'Subscription cancelled successfully' });
     } catch (e: any) {
-        return res.status(500).json({ error: e.message });
+        console.error('[Server] Cancel subscription error:', e);
+        return res.status(500).json({ error: e.message || 'Internal server error' });
     }
 });
 

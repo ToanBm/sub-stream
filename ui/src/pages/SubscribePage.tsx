@@ -101,17 +101,27 @@ export function SubscribePage({
 
   const confirmCancel = async () => {
     setShowCancelModal(false);
+    if (!mySub || !address) {
+      toast.error('Invalid subscription or user data');
+      return;
+    }
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/cancel-subscription`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscriptionId: mySub.id }),
+        body: JSON.stringify({
+          subscriptionId: mySub.id,
+          userAddress: address
+        }),
       });
+      const data = await res.json();
       if (res.ok) {
         setMySub(null);
-        toast.success('Subscription cancelled successfully.');
+        toast.success(data.message || 'Subscription cancelled successfully.');
+        // Reload to refresh UI
+        setTimeout(() => window.location.reload(), 1500);
       } else {
-        toast.error('Failed to cancel subscription.');
+        toast.error(data.error || 'Failed to cancel subscription.');
       }
     } catch (e) {
       console.error('Cancel error', e);
@@ -124,18 +134,26 @@ export function SubscribePage({
   };
 
   const retryPayment = async () => {
+    if (!mySub || !address) {
+      toast.error('Invalid subscription or user data');
+      return;
+    }
     setRetryLoading(true);
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/retry-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscriptionId: mySub.id }),
+        body: JSON.stringify({
+          subscriptionId: mySub.id,
+          userAddress: address
+        }),
       });
+      const data = await res.json();
       if (res.ok) {
-        toast.success('Payment retry successful!');
-        window.location.reload();
+        toast.success(data.message || 'Payment retry successful!');
+        setTimeout(() => window.location.reload(), 1500);
       } else {
-        toast.error('Payment retry failed. Check your balance.');
+        toast.error(data.error || 'Payment retry failed. Check your balance.');
       }
     } catch (e) {
       console.error('Retry error', e);
