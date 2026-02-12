@@ -82,9 +82,14 @@ export function SubscribePage({
       return;
     }
     setLoading(true);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     Promise.all([
       fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/my-subscription/${address}`).then((r) => r.json()),
-      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/balance/${address}`).then((r) => r.json()),
+      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/balance/${address}`).then((r) => {
+        if (!r.ok) return null;
+        return r.json();
+      }),
     ])
       .then(([subData, balData]) => {
         if (subData.subscription) {
@@ -97,14 +102,31 @@ export function SubscribePage({
       .finally(() => setLoading(false));
   }, [address, subscriptionStatus]);
 
-  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false); // Restore this line
+  const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
+
+  // Reset processing state when subscription status changes
+  useEffect(() => {
+    if (subscriptionStatus === 'success' || subscriptionStatus === 'error' || subscriptionStatus === 'idle') {
+      setProcessingPlanId(null);
+    }
+  }, [subscriptionStatus]);
+
+  const handleSubscribe = async (planId: string, amount: number) => {
+    setProcessingPlanId(planId);
+    await subscribe(planId, amount);
+  };
+
 
   const confirmCancel = async () => {
+    console.log('[SubscribePage] Confirm cancel clicked');
     setShowCancelModal(false);
     if (!mySub || !address) {
+      console.error('[SubscribePage] Missing data:', { mySub, address });
       toast.error('Invalid subscription or user data');
       return;
     }
+    console.log('[SubscribePage] Sending cancel request for:', mySub.id);
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3005'}/cancel-subscription`, {
         method: 'POST',
@@ -115,21 +137,21 @@ export function SubscribePage({
         }),
       });
       const data = await res.json();
+      console.log('[SubscribePage] Cancel response:', { ok: res.ok, status: res.status, data });
       if (res.ok) {
         setMySub(null);
         toast.success(data.message || 'Subscription cancelled successfully.');
-        // Reload to refresh UI
-        setTimeout(() => window.location.reload(), 1500);
       } else {
         toast.error(data.error || 'Failed to cancel subscription.');
       }
     } catch (e) {
-      console.error('Cancel error', e);
+      console.error('[SubscribePage] Cancel error:', e);
       toast.error('An error occurred while cancelling.');
     }
   };
 
   const cancelSubscription = async () => {
+    console.log('[SubscribePage] Cancel button clicked, showing modal...');
     setShowCancelModal(true);
   };
 
@@ -151,7 +173,8 @@ export function SubscribePage({
       const data = await res.json();
       if (res.ok) {
         toast.success(data.message || 'Payment retry successful!');
-        setTimeout(() => window.location.reload(), 1500);
+        // Optimistically update UI to active
+        setMySub((prev: any) => ({ ...prev, status: 'active' }));
       } else {
         toast.error(data.error || 'Payment retry failed. Check your balance.');
       }
@@ -161,6 +184,7 @@ export function SubscribePage({
     } finally {
       setRetryLoading(false);
     }
+
   };
 
   // Dashboard view for active subscribers
@@ -299,6 +323,43 @@ export function SubscribePage({
             </div>
           </div>
         </div>
+
+        {/* CANCEL CONFIRMATION MODAL - Dashboard View */}
+        {showCancelModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-[var(--color-navy-dark)]/80 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden animate-slide-up">
+              <div className="p-0.5 bg-[var(--color-red)]" />
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <AlertTriangle className="w-8 h-8 text-[var(--color-red)]" />
+                </div>
+
+                <h2 className="text-xl font-bold uppercase tracking-wide text-[var(--color-text)] mb-3">
+                  Cancel Plan?
+                </h2>
+
+                <p className="text-sm text-[var(--color-text-muted)] leading-relaxed mb-8">
+                  Cancel your subscription? This stops all future payments immediately.
+                </p>
+
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={confirmCancel}
+                    className="w-full py-3.5 bg-[var(--color-red)] hover:bg-[#C71530] text-white text-xs font-bold uppercase tracking-widest rounded transition-all shadow-md active:scale-95"
+                  >
+                    Yes, Cancel Subscription
+                  </button>
+                  <button
+                    onClick={() => setShowCancelModal(false)}
+                    className="w-full py-3.5 bg-[var(--color-bg-alt)] hover:bg-[var(--color-border)] text-[var(--color-text)] text-xs font-bold uppercase tracking-widest rounded transition-all active:scale-95"
+                  >
+                    No, Keep My Plan
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -397,10 +458,10 @@ export function SubscribePage({
                     <button
                       onClick={() =>
                         isRegistered
-                          ? subscribe(plan.id, plan.chargeAmount)
+                          ? handleSubscribe(plan.id, plan.chargeAmount)
                           : onRegister()
                       }
-                      disabled={subscriptionStatus === 'authorizing'}
+                      disabled={processingPlanId !== null && processingPlanId !== plan.id || processingPlanId === plan.id}
                       className={`w-full py-3.5 text-sm font-bold uppercase tracking-wide rounded transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-wait ${plan.accent
                         ? 'bg-[var(--color-red)] hover:bg-[#C71530] text-white shadow-lg'
                         : 'bg-[var(--color-navy)] hover:bg-[var(--color-accent-hover)] text-white'
@@ -408,11 +469,9 @@ export function SubscribePage({
                     >
                       {!isRegistered
                         ? 'Register Passkey First'
-                        : subscriptionStatus === 'authorizing'
-                          ? 'Confirm Biometric...'
-                          : subscriptionStatus === 'success'
-                            ? 'Subscribed!'
-                            : `Select ${plan.name}`}
+                        : processingPlanId === plan.id
+                          ? (subscriptionStatus === 'authorizing' ? 'Confirming...' : 'Processing...')
+                          : `Select ${plan.name}`}
                     </button>
                   </div>
                 </div>
@@ -440,9 +499,9 @@ export function SubscribePage({
           </div>
         </div>
       </div>
-      {/* CANCEL CONFIRMATION MODAL */}
+      {/* CANCEL CONFIRMATION MODAL - Pricing View */}
       {showCancelModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[var(--color-navy-dark)]/80 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-[var(--color-navy-dark)]/80 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden animate-slide-up">
             <div className="p-0.5 bg-[var(--color-red)]" />
             <div className="p-8 text-center">
